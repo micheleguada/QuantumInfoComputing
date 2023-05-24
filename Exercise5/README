@@ -1,0 +1,63 @@
+### Exercise 5 - Quantum Information and Computing 2020/2021 ###
+
+## Eigenproblem & Random Matrix Theory ##
+The aim of this program is to study the distribution of normalized spacings of eigenvalues of different type of random matrices. 
+The 2 types considered are: HERMITIAN matrix and DIAGONAL matrix.
+
+
+# Files description: #
+- Ex5-Guadagnini-NormSpacings-CODE.f90 : 
+    contains the module "NormSpacings" that defines the subroutines to compute eigenvalues, normalized spacings, probability distribution and to save results on file.
+    in details:
+    *  RandInitHermitianMat: it initializes the matrix as upper complex hermitian triangular;
+    *  HermEigenvalues     : it computes eigenvalues using the ZHEEV subroutine from LAPACK;
+    *  NormSpacings        : it computes the normalized spacings between an array;
+    *  ComputePDF          : it computes the probability distribution from an array of data;
+    *  PrintColumnsOnFile  : it prints probability and mid position of bins on file.
+    
+- Ex5-Guadagnini-Debugger-CODE.f90 :
+    contains the module "Debugger" that defines two subroutines to be used in the program.
+    *  InitDebugger: it prints a message stating that debugging is active and explaining its usage;
+    *  Checkpoint  : it prints a message when called only if the logical flag "Debug" is .TRUE.;
+    *  CatchError  : called when something goes wrong, it prints a message on screen and if it is a fatal error also on a file before stopping the execution.
+    
+- Ex5-Guadagnini-CODE.f90 : 
+    contains the main program that reads the size of the matrix and number of bins from command line. If command arguments are not present or invalid it uses defaults.
+    Then it calls the subroutines that do the actual task. It is divided into three parts: 
+    * reading command line arguments to set Matrix size, number of bins and debug flag;
+    * diagonal matrix spacings computaton;
+    * hermitian matrix spacings computation.
+    
+- Ex5-Guadagnini-SpacingsFit.gnu :
+    gnuplot script to fit the computed distribution with the suggested model and produce the fit plot and the residuals plot.
+    It receives as input three arguments: name of the file containing data, max x and max y values.
+        
+- HermSpacings.dat & DiagSpacings.dat :
+    these files contains the distributions computed by the program from the Hermitian matrix and the Diagonal matrix respectively.
+
+   
+# Compile instructions: #
+To compile use :
+    gfortran *CODE.f90 -o RandMatTheory.x -lblas - llapack [-O3 -fcheck=all -Wall] 
+    
+Note:
+the flag "-Ofast" produces bad results (NaN)
+
+    
+# Execute instructions: #
+- FORTRAN:
+    To run use :
+        ./RandMatTheory.x [Size] [# of bins] [debug flag]
+    where "Size" and "# of bins" must be an integer number and "debug flag" must be "TRUE" in order to activate debug.
+    Example: 
+        ./RandMatTheory.x 10000 150
+        
+    The programcan also be called without arguments; in this case it uses defaults and it is equivalent to:
+        ./RandMatTheory.x 200 20
+    
+- GNUPLOT:
+    To run the gnuplot script:
+        gnuplot -c Ex5-Guadagnini-SpacingsFit.gnu datafile xmax ymax
+    Examples:
+        gnuplot -c Ex5-Guadagnini-SpacingsFit.gnu HermSpacings.dat 4.1 1.2
+        gnuplot -c Ex5-Guadagnini-SpacingsFit.gnu DiagSpacings.dat 5.1 1.2

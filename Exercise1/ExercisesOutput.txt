@@ -1,0 +1,89 @@
+Michele Guadagnini - Mt. 1230663
+
+------------------ EXERCISE 1: ------------------
+Connection to spiro.fisica.unipd.it cluster:
+Copy the file:
+    scp -oKexAlgorithms=+diffie-hellman-group1-sha1 Exercise1.f [username]@spiro.fisica.unipd.it:
+Connect to the cluster:
+    ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 [username]@spiro.fisica.unipd.it
+Compile and run the execution.
+
+
+------------------ EXERCISE 2: ------------------
+Output of the program:
+    Sum with Int*2 is  -31615
+    Sum with Int*4 is      2000001
+    Sum with Real*4 is    3.14159278E+32
+    Sum with Real*8 is    3.1415927410267153E+032
+
+
+------------------ EXERCISE 3: ------------------
+I decided to use integer square matrices initialized at random;
+### a-b): [matrix shape = 3, 3] ###
+ Matrix A:
+   5   6   2
+   3   7   0
+   9   0   8
+ Matrix B:
+   7   0   7
+   2   0   1
+   5   9   0
+ Mat. C with 1st loop order:
+  57  18  41
+  35   0  28
+ 103  72  63
+ Exec. time [s]:    5.00003807E-06
+
+ Mat. C with 2nd loop order:
+  57  18  41
+  35   0  28
+ 103  72  63
+ Exec. time [s]:    2.00001523E-06
+
+ Mat. C with MATMUL func:
+  57  18  41
+  35   0  28
+ 103  72  63
+ Exec. time [s]:    1.69998966E-05
+
+### c): [matrix shape = 1000, 1000] ###
+ Mat. C with 1st loop order:
+ Exec. time [s]:    4.55585718    
+ Mat. C with 2nd loop order:
+ Exec. time [s]:    5.10870457    
+ Mat. C with MATMUL func:
+ Exec. time [s]:    7.43942261E-02
+ 
+### d): [matrix shape = 1000, 1000] ###
+Compiled with -O flag:
+ Mat. C with 1st loop order:
+ Exec. time [s]:    1.60752010    
+ Mat. C with 2nd loop order:
+ Exec. time [s]:    2.19102907    
+ Mat. C with MATMUL func:
+ Exec. time [s]:    7.48071671E-02
+ 
+Compiled with -O2 flag:
+ Mat. C with 1st loop order:
+ Exec. time [s]:    1.54402995    
+ Mat. C with 2nd loop order:
+ Exec. time [s]:    1.78324091    
+ Mat. C with MATMUL func:
+ Exec. time [s]:    7.44769573E-02
+ 
+Compiled with -O3 flag:
+ Mat. C with 1st loop order:
+ Exec. time [s]:    1.17668402    
+ Mat. C with 2nd loop order:
+ Exec. time [s]:   0.551546097    
+ Mat. C with MATMUL func:
+ Exec. time [s]:    7.45729208E-02
+
+Compiled with -Ofast flag:
+ Mat. C with 1st loop order:
+ Exec. time [s]:    1.17788804    
+ Mat. C with 2nd loop order:
+ Exec. time [s]:   0.558771968    
+ Mat. C with MATMUL func:
+ Exec. time [s]:    7.50160217E-02
+

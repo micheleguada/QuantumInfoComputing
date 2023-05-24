@@ -1,0 +1,9 @@
+## Complex Matrix Derived Type ##
+This program create a complex matrix initialized randomly with complex numbers whose REAL and IMAGINARY parts are in [-1,1]. Then the program computes TRACE, CONJUGATE-TRANSPOSE MATRIX and prints all in a file. 
+The name of the output file can be passed as first argument (max 30 characters). It is also possible to provide the size of the matrix as second and third arguments, otherwise default values will be used.
+
+# Compile instructions:
+gfortran ComplexMatrixType-CODE.f90 ComplexMatrixTest-CODE.f90 -o CMatTest.x
+
+# Execute instructions:
+./CMatTest.x [filename] [#columns] [#rows]

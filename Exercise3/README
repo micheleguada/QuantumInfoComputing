@@ -1,0 +1,54 @@
+### Exercise 3 - Quantum Information and Computing 2020/2021 ###
+
+## Checkpoints and Debugging ##
+This program is the third exercise of the week 1 assignment rewritten with added comments, checkpoints and pre and post condition checks.
+It computes a matrix-matrix multiplication with three different methods. 
+The two matrices are initialized with random numbers in the range [0,1] and their size can passed as arguments to the program. If the arguments are invalid or not provided the program uses some default values.
+
+# Files description: #
+- Ex3-Guadagnini-CODE.f90 : 
+    contains the module "LoopMultiply" that defines the functions to compute the multiplication and also some subroutines that perform checks or printings; in details:
+    *  LoopMul1: 1st loop order matrix multiplication;
+    *  LoopMul2: 2nd loop order matrix multiplication;
+    *  PrintMatrix: if the matrix has less than 36 elements, it prints the matrix, otherwise it prints its shape;
+    *  DefaultInit: it sets matrices to default size (square matrices of size 100) and it is called when the command arguments are invalid or not present;
+    *  Checkshapes: it checks that the sizes provided as arguments are greater than 0 and that the matrices can be multiplied;
+    *  PrintExecTime: it checks if the execution time is positive and it prints it.    
+    
+- Ex3-Guadagnini-Checkpoint-CODE.f90 :
+    contains the module "Checkpoints" that defines the Checkpoint subroutine to be used in the program. It has 4 arguments in input:
+    *  Debug: logical flag to control the printing;
+    *  Text: some text to be printed if "Debug" is .TRUE. (optional);
+    *  INumber: integer to be used as line number of where the checkpoint subroutine is called (optional);
+    *  RNumber: real variable to be printed (optional).
+    
+# Compile instructions: #
+gfortran Ex3-Guadagnini-CODE.f90 Ex3-Guadagnini-Checkpoint-CODE.f90 -o MatrixTest.x [optimization flag]
+
+or 
+
+gfortran *CODE.f90 -o MatrixTest.x [optimization flag]
+
+# Execute instructions: #
+The program can be executed with different arguments:
+
+1) without arguments, the program uses default values set with the subroutine "DefaultInit":
+./MatrixTest.x 
+
+2) with 4 INTEGER arguments representing the shapes of the matrices, with the following order:
+./MatrixTest.x [# rows A] [# cols A] [# rows B] [# cols B]
+
+3) with the matrices shapes and the debug flag (the flag can be set as: TRUE/.TRUE./T/.T. or FALSE/.FALSE./F/.F.):
+./MatrixTest.x [# rows A] [# cols A] [# rows B] [# cols B] [logical debug flag]
+
+# Example of output for the first way of usage (without arguments): #
+ The possible arguments are: # rows A, # cols A, # rows B, # cols B, (logical debug flag)
+Setting default values: size    100 square matrices with debug inactive
+Matrix A with shape: (   100,   100)
+Matrix B with shape: (   100,   100)
+Matrix C (1st loop order) with shape: (   100,   100)
+Exec. time [s]:   0.009589
+Matrix C (2nd loop order) with shape: (   100,   100)
+Exec. time [s]:   0.006483
+Matrix C (MATMUL function) with shape: (   100,   100)
+Exec. time [s]:   0.000464

@@ -1,0 +1,19 @@
+## Ex 4 - Quantum information and computing ##
+
+# files description:
+- *.txt: 
+    these files contain the measured execution time for the various methods and optimization flags;
+- MethodsPlot.gnu: 
+    contains the set of gnuplot instruction used to produce the images "Methods[flag].pdf". 
+- AutoFit.gnu: 
+    script to be called by Ex4-Guadagnini-AutoFitScript.py; it fits the data in the file provided as argument and produce the corresponding plot;
+- Ex4-Guadagnini-AutoFitScript.py: 
+    it runs gnuplot with the instructions contained in "AutoFit.gnu", passing to it datafiles and renaming the "fit.log" files accordingly;
+    
+# to run python script that produces the fits:
+python Ex4-Guadagnini-AutoFitScript.py
+
+# to run MethodsPlot.gnu for different optimization flags:
+gnuplot -c MethodsPlot.gnu <flag>
+
+[Example:]  gnuplot -c MethodsPlot.gnu O2

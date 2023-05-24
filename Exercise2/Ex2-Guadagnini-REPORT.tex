@@ -1,0 +1,89 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Michele Guadagnini}
+\rhead{\today}
+\lfoot{Ex 2 - Quantum Information and Computing 2020/2021}
+\rfoot{Page \thepage}
+
+\author{Michele Guadagnini - Mt. 1230663}
+\title{\textbf{Exercise 2 \\ Complex Matrix Derived Type}}
+\date{\today}
+
+%File names must include your name, exercise number and codewords REPORT, and CODE.
+%Example: Ex2-Rossi-REPORT.pdf
+%The maximum length of the report is five pages
+\begin{document}
+\maketitle
+
+\vspace{80pt}
+\begin{abstract}
+	This exercise is about the usage of derived types in Fortran. 
+	A complex matrix type containing the matrix elements, dimensions, trace, determinant and adjoint matrix is defined. 
+	The derived type include also the functions and interface operators for the trace and adjoint matrix computation. 
+\end{abstract}
+
+\newpage
+
+%\section{Theory} %Explain briefly the theory you have based your solution on.
+
+\section{Code Development} %Introduce strategies, tests, and report debugging problems, compilations options
+\subsection{Derived Type Module}
+This module is inside the file \textit{ComplexMatrixType-CODE.f90}.
+
+The derived type contains an integer vector of length 2 to store the \textit{matrix size}, two double complex variables for \textit{Trace} and \textit{Determinant} and two double complex allocatable arrays to store the matrix and its adjoint one.
+Then the functions computing trace and adjoint are defined with their correspondent operators.
+The trace function also checks that the matrix is square.
+The adjoint matrix function uses the intrinsic Fortran functions \textbf{CONJG} and \textbf{TRANSPOSE}.
+
+To randomly initialize the matrix, a subroutine is created making use of the intrinsic function \textbf{RANDOM\_NUMBER}; \textit{Real} and \textit{Imaginary} parts are scaled and shifted to be in the range [-1,1]. 
+
+Finally also the subroutine for writing the object on a file is implemented. 
+To write complex numbers in readable format a particular string is passed to the format specifier in the \textbf{WRITE} function.
+This descriptor is \textcolor{red}{"(*('('sf6.3xspf6.3x'i)':x))"} and it is made the following specifiers:
+\begin{itemize}
+	\item \textit{s} and \textit{sp} to control the sign printing;
+	\item \textit{x} to add a blank space;
+	\item \textit{f6.3} to plot real numbers with 6 characters and 3 decimal digits;
+	\item \textit{:} to terminate format scanning immediately if there is no more data to print (to avoid the opening of another bracket at the end of the line);
+	\item \textit{*} at the beginning is needed to print the elements in rows and columns.
+\end{itemize}
+A problem faced when writing this module was that the arguments passed to a function as input must be declared \textit{INTENT(IN)} inside it in order to instruct the compiler to treat it as input, as suggested by the compiler.
+
+\subsection{Test Program}
+This program is written in the file \textit{ComplexMatrixTest-CODE.f90}.
+
+In order to test the new module a program is created, which accepts the output file name and the matrix size as arguments in this order. 
+In case no arguments are provided it uses default values.
+Then it allocates the memory to store the matrix elements, calls the initialization subroutine, computes and stores trace and adjoint matrix and print all on a file. Then it deallocates memory and stops.
+The provided \textit{README} file describes the compilation and usage of the program.
+
+One encountered issue was that sometimes the name of the output file was truncated when saved because the length of the character variable used to store it was too short. Changing from \textit{CHARACTER(20)} to \textit{CHARACTER(30)} solved the issue.
+
+\section{Results} %Present data and explain your results.
+The default output file is called \textit{TestOutput.txt}. 
+The program works for different matrix shapes, also for non-square matrices skipping the trace computation. 
+Two other example output files are provided (\textit{TestOutputBigger.txt} and \textit{TestOutputNonSquare.txt}).
+
+\section{Self-evaluation} %What have you learned? What can be done next? What went wrong and why?
+New things learned with this exercise are:
+\begin{itemize}
+	\item creating a derived type object;
+	\item using functions and subroutines, passing values to and retrieving results from;
+	\item generating random numbers in any range;
+	\item using format specifiers with \textit{WRITE} function;
+	\item passing and using user arguments when running a program.
+\end{itemize}
+Something that can be done next is to implement in the module a function that computes the determinant of the matrix.
+
+The difficulties encountered in this exercise were mostly syntax errors, usually fast solved with the help of the compiler.
+	
+\end{document}

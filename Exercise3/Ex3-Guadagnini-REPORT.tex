@@ -1,0 +1,209 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=3.0cm, right=3.0cm, top=3.0cm, bottom=3.0cm]{geometry}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{caption}
+
+% include code listings
+\usepackage{listings}
+
+% Defining colors for syntax highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\scriptsize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=3
+}
+
+\lstset{style=mystyle}
+\captionsetup[lstlisting]{font={scriptsize}}
+
+% header and footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Michele Guadagnini}
+\rhead{\today}
+\lfoot{Ex 3 - Quantum Information and Computing 2020/2021}
+\rfoot{Page \thepage}
+
+\author{Michele Guadagnini - Mt. 1230663}
+\title{\textbf{Exercise 3 \\ Checkpoints and Debugging}}
+\date{\today}
+
+%File names must include your name, exercise number and codewords REPORT, and CODE.
+%Example: Ex2-Rossi-REPORT.pdf
+%The maximum length of the report is five pages
+\begin{document}
+	
+\maketitle
+
+\vspace{20pt}
+\begin{abstract}
+	This exercise is about the usage of checkpoints for debugging.
+	The assignment requires to implement a checkpoint subroutine to be used in the program created for the third exercise of week 1 assignment with added documentation, comments and some error handling. 
+\end{abstract}
+
+\vspace{20pt}
+\section{Theory} %Explain briefly the theory you have based your solution on.
+
+\textit{Checkpoints} are a useful tool when debugging a program, especially if it is big and complex. They are usually implemented as function that receives as input a logical variable to toggle the printing. In this way one can activate this debug functionality by simply changing the value of this variable. Checkpoint functions usually receives in input also other variables in order to be able to print a different message at every different call.
+If for some reason the program stops unexpectedly, the programmer can look at the last printed message to identify where the code failed and find a solution.
+
+Another approach that helps the programmer to avoid run-time errors is to set some \textit{pre-} and/or \textit{post-conditions}. 
+These conditions are assumptions that the programmer does on the program; if one of these conditions is not met, then there is an error and some dedicated code is executed in order to deal with the error and prevent the program to halt brutally.
+
+\section{Code Development} %Introduce strategies, tests, and report debugging problems, compilations options
+
+\subsection{Design and Implementation}
+
+The code is implemented in two files: \textit{"Ex3-Guadagnini-CODE.f90"} contains the matrix-matrix multiplication module and the main program, while \textit{"Ex3-Guadagnini-Checkpoint-CODE.f90"} contains the \textit{CheckPoint} subroutine.
+
+The program is built to receive the shapes of the matrices as command arguments. Let $C$ be the matrix resulting from the multiplication between $A$ and $B$ ($C = AB$); then the order for the size values is: \verb|#| rows of $A$, \verb|#| columns of $A$, \verb|#| rows of $B$ and \verb|#| columns of $B$. 
+It also receives a logical flag to activate the debug functionality, i.e. activate the printing of the subroutine \textit{CheckPoint}.
+
+An example of the command with all the arguments used is:
+\begin{lstlisting}[language=BASH,numbers=none, caption=Example command]
+	./MatrixTest.x 20 15 15 20 .TRUE.
+\end{lstlisting}
+The program can also be run with the simple command without arguments; in this case the matrices are set to be square with size $100$ by calling a dedicated subroutine, \textit{DefaultInit}. This subroutine is called also when the input arguments are invalid.
+To determine if the provided arguments are acceptable the program performs the following checks:
+\begin{itemize}
+	\item firstly it counts the number of arguments and checks it to be $4$, $5$ or $0$;
+	\begin{itemize}
+		\item if \verb|#| of arguments is $4$ then it tries to read the matrices shapes through the intrinsic function \textit{READ}. The reading success or failure is checked by the parameter \textit{IOSTAT} of the function.  
+		\item if \verb|#| of arguments is $5$ it does the same as the previous case but it tries also to read the logical flag for debugging.
+		\item if \verb|#| of arguments is $0$ it simply calls the default initialization.
+		\item if none of the previous case occurs then it prints an error message saying that the number of arguments is different from the expected value and calls the default initialization. 
+	\end{itemize}
+	\item it checks that the size of the matrices are strictly positive and that they are consistent with matrix-matrix multiplication. This is done by the subroutine \textit{CheckShapes}.	
+\end{itemize}
+The code in the main program executing all these checks is reported in the following listing:
+\lstinputlisting[language=FORTRAN, firstline=136, lastline=168, caption=Input checking, firstnumber=136]{Ex3-Guadagnini-CODE.f90}
+
+After all these checks the program allocates the memory for the three matrices, it initializes $A$ and $B$ with random numbers between $0$ and $1$ with double precision and performs the calculations.
+
+The matrix-matrix multiplication module contains also two other subroutines:
+\begin{itemize}
+	\item \textit{PrintMatrix}, that prints a matrix if it contains less then $36$ elements, otherwise it prints simply its shape;
+	\item \textit{PrintExecTime}, that checks the execution time to be positive and prints it on screen.
+\end{itemize}
+
+The subroutine \textit{CheckPoint} receives as input the logical flag \textit{Debug} and three optional variables:
+\begin{itemize}
+	\item \textit{Text}, a character array to be printed;
+	\item \textit{INumber}, an integer number used to pass the line number at which the \textit{CheckPoint} subroutine is called;
+	\item \textit{RNumber}, a real variable to be printed.
+\end{itemize}
+It is called repeatedly in the main program with different messages to print.
+The subroutine implementation is reported in the following code listing:
+\lstinputlisting[language=FORTRAN, firstline=5, lastline=24, caption=CheckPoint subroutine, firstnumber=5]{Ex3-Guadagnini-Checkpoint-CODE.f90}
+
+\subsection{Debug and Test}
+
+The program has been tested by passing a wrong number of arguments and also by using different wrong values like float numbers for the size, negative numbers, characters and also numbers or characters to the logical debug flag. The program is able to catch these errors, print an error message and continue execution by using default values for size.
+
+As an example in the following lines the outputs of some commands are reported:
+\begin{lstlisting}[caption=Example output with correct arguments. Lines starting with $"-->"$ are produced by the \textit{CheckPoint} subroutine.]
+$: ./MatrixTest.x 20 15 15 20 .TRUE.
+	--> Input arguments accepted! [Line # 157]
+	--> Matrices has consistent shapes. [Line # 168]
+	--> Memory correctly allocated. [Line # 174]
+	--> Matrices initialization complete. [Line # 180]
+	Matrix A with shape: (    20,    15)
+	Matrix B with shape: (    15,    20)
+	--> First loop order multiplication successful. [Line # 190]
+	Matrix C (1st loop order) with shape: (    20,    20)
+	Exec. time [s]:   0.000056
+	--> Second loop order multiplication successful. [Line # 198]
+	Matrix C (2nd loop order) with shape: (    20,    20)
+	Exec. time [s]:   0.000064
+	--> MATMUL multiplication successful. [Line # 206]
+	Matrix C (MATMUL function) with shape: (    20,    20)
+	Exec. time [s]:   0.000052
+	--> Execution is complete!
+\end{lstlisting}
+
+\begin{lstlisting}[caption=Example output with wrong arguments.]
+$ ./MatrixTest.x -4 2.3 -2.5 k 
+	Error: invalid input value provided
+	The possible arguments are: # rows A, # cols A, # rows B, # cols B, (logical debug flag)
+	Setting default values: size    100 square matrices with debug inactive
+	Matrix A with shape: (   100,   100)
+	Matrix B with shape: (   100,   100)
+	Matrix C (1st loop order) with shape: (   100,   100)
+	Exec. time [s]:   0.005859
+	Matrix C (2nd loop order) with shape: (   100,   100)
+	Exec. time [s]:   0.006431
+	Matrix C (MATMUL function) with shape: (   100,   100)
+	Exec. time [s]:   0.000491
+\end{lstlisting}
+
+\section{Results} %Present data and explain your results.
+
+Three executable files have been created by compiling the code with three optimization flags: \textit{-O}, \textit{-O2} and \textit{-O3}.
+The measured performances of the three multiplication methods are reported in Table 1 for different sizes of square matrices and with the different optimizations.
+\begin{table}
+	\begin{center}
+	\begin{tabular}{c|c|c|c|c|c|c|c|c|c}
+		\hline
+		& \multicolumn{3}{c|}{\textbf{1st loop order}} &  \multicolumn{3}{c|}{\textbf{2nd loop order}}  &  \multicolumn{3}{c}{\textbf{MATMUL}}  \\
+		\hline
+		\textbf{Size} & -O  & -O2  & -O3  & -O   & -O2    & -O3    & -O     & -O2    & -O3    \\
+		\hline
+		100  & 0.0044 & 0.0019 & 0.0015 & 0.0019 & 0.0016 & 0.0004 & 0.0006 & 0.0006 & 0.0005 \\
+		\hline
+		500  & 0.4929 & 0.2337 & 0.2173 & 0.1497 & 0.1383 & 0.0754 & 0.0337 & 0.0333 & 0.0347 \\
+		\hline
+		1000 & 10.468 & 10.226 & 10.171 & 1.2102 & 1.1132 & 0.6206 & 0.2675 & 0.2580 & 0.2596 \\
+		\hline
+		2000 & 98.487 & 93.288 & 93.293 & 9.4082 & 8.7364 & 5.4749 & 2.1231 & 2.1470 & 2.0659 \\
+		\hline
+	\end{tabular}
+	\end{center}
+	\caption{Algorithms timings for square matrices multiplication. Time is in seconds.}
+\end{table} 
+
+Looking at the table it is possible to see that \textit{$1^{st}$ loop order} method and \textit{MATMUL} function are quite insensitive to the optimization flags since timings vary very little. 
+Instead, \textit{$2^{nd}$ loop order} method halves the execution time passing from the \textit{-O} flag to the \textit{-O3} one.
+As expected, the \textit{MATMUL} function is the fastest method, especially for big matrices. 
+
+There is also a huge difference between the two loop orders. The reason for this is that \textit{FORTRAN} stores the matrices in memory in column-major order and so, because of how it is implemented, the $2^{nd}$ method causes less overwrites of the CPU cache.
+
+Regarding the \textit{CheckPoint} subroutine, as shown in the first example in the previous section, it works great by printing a message that helps the programmer to understand where the program has stopped in case something went wrong.
+
+\section{Self-evaluation} %What have you learned? What can be done next? What went wrong and why?
+
+Things learned while completing this assignment are:
+\begin{itemize}
+	\item what it is and how to implement a Checkpoint subroutine;
+	\item how to define and use \textit{OPTIONAL} variables;
+	\item how to use the \textit{IOSTAT} parameter of the intrinsic function \textit{READ} to check if the reading operation was successful or not; 
+\end{itemize}
+
+To improve this exercise solution one can create a subroutine to manage the input arguments in a better and clearer way instead of having nested \textit{IF ELSE} statements in the main program.
+Also, it would have been better to take not the single execution time to test the performance, but run the program repeatedly and take the mean of the timings, since they are dependent on the load of the system, that is not constant, and also on the particular initialization of the matrices. 
+	
+\end{document}

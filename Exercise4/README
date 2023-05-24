@@ -1,0 +1,48 @@
+### Exercise 4 - Quantum Information and Computing 2020/2021 ###
+
+## Automated plots and fits ##
+This exercise is about using a FORTRAN compiled executable in a Python script to run it multiple times with different parameters. 
+Then, the data produced are plotted and fitted automatically by using a gnuplot script.
+
+# Files description: #
+- Ex4-Guadagnini-LoopMultiply-CODE.f90 : 
+    contains the module "LoopMultiply" that defines the functions to compute the multiplication and also some subroutines that perform checks or printings; in details:
+    *  LoopMul1: 1st loop order matrix multiplication;
+    *  LoopMul2: 2nd loop order matrix multiplication;
+    *  PrintMatrix: if the matrix has less than 36 elements, it prints the matrix, otherwise it prints its shape;
+    *  ReadSizeFromFile: read the matrix size from a specified file;
+    *  WriteExecTimeToFile: it checks if the execution time is positive and it prints it in the specified file.   
+    
+- Ex4-Guadagnini-Debugger-CODE.f90 :
+    contains the module "Debugger" that defines two subroutines to be used in the program.
+    *  Checkpoint: print a message when called only if the logical flag "Debug" is .TRUE.;
+    *  CatchError: called when something goes wrong, it prints a message on screen and if it is a fatal error also on a file before stopping the execution.
+    
+- Ex4-Guadagnini-Program-CODE.f90 : 
+    contains the main program that reads the size with the dedicated function, initializes the matrices and calls the multiplication methods.
+    
+- Ex4-Guadagnini-PyScript-CODE.py :
+    it is the main script. It resets all the output files in Data folder and the error file "FATAL_ERRORS.txt". It ensures that the folder Data exists and then start the main loop that set the matrix size in the proper file and calls the FORTRAN program with the proper parameters. On every cycle it checks for errors in the file "FATAL_ERRORS.txt" and eventually stop the execution. At the beginning all the configurable variables are declared (Nmin, Nmax, filenames, flags, debug option, ...).
+        
+- MatrixSize.txt :
+    it is the file where the matrix size is written by the python script. Its name is a variable of the python script itself.
+
+- FATAL_ERRORS.txt :
+    it is the file where the FORTRAN subroutine "CatchError" prints a message when a fatal error occurs in order to make the python script aware of this error. Its name is hard-coded as constant in the debugger module and it should be always empty.
+    
+- Data (folder) :
+    it is where the produced data are stored. It contains its own README that describes all the files in it.
+   
+# Compile instructions: #
+To produce the three executable used for this assignment (names of the executables must be as written here in order to have the python script to call them):
+    gfortran *CODE.f90 -o MatrixTestO0.x -O0
+    gfortran *CODE.f90 -o MatrixTestO2.x -O2
+    gfortran *CODE.f90 -o MatrixTestOfast.x -Ofast
+    
+# Execute instructions: #
+The compiled program can be called in the following way (but in solving this exercise it has been called only by the python script):
+    ./MatrixTestO2.x MatrixSize.txt Data/1stLoopO2.txt Data/2ndLoopO2.txt Data/MATMULO2.txt
+    
+To run the python script:
+    python Ex4-Guadagnini-PyScript-CODE.py [or simply: python *CODE.py]
+

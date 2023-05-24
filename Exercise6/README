@@ -1,0 +1,62 @@
+### Exercise 6 - Quantum Information and Computing 2020/2021 ###
+
+## Continuous Time-Ind. Schroedinger equation ##
+The aim of this program is to solve the continuous time-independent schroedinger equation by diagonalizing the hamiltonian matrix obtained with the discretization of the space. The hamiltonian is defined as: H = p^2 + w^2 * q^2.
+
+
+# Files description: #
+- Ex6-Guadagnini-ContinuousTimeIndSE-CODE.f90 : 
+    contains the module that defines the subroutines to compute eigenvalues, normalized spacings, probability distribution and to save results on file.
+    in details:
+    *  InitDefaults         : it sets default values for the problem parameters in case that invalid parameters were passed to command line
+    *  Discretize           : it computes the discretized base space vector
+    *  HarmonicOscillatorPot: it computes the discrete harmonic potential from the base space vector
+    *  InitHamiltonian      : it initializes the matrix as a tridiagonal matrix (actually only the upper triangular part is set)
+    *  SymmetricEigenpairs  : it computes eigenvalues and eigenfunctions using the DSYEV subroutine from LAPACK
+    *  PrintEigVecs         : it prints the discrete eigenfunctions as columns in a file together with the base space vector
+    *  PrintEigVals         : it prints the eigenvalues in column
+    
+- Ex6-Guadagnini-Debugger-CODE.f90 :
+    contains the module "Debugger" that defines two subroutines to be used in the program.
+    *  InitDebugger: it prints a message stating that debugging is active and explaining its usage;
+    *  Checkpoint  : it prints a message when called only if the logical flag "Debug" is .TRUE.;
+    *  CatchError  : called when something goes wrong, it prints a message on screen and if it is a fatal error also on a file before stopping the execution.
+    
+- Ex6-Guadagnini-CODE.f90 : 
+    contains the main program that reads the parameters w (omega), width (system dimension in unit of 1/w), Ndiv (# of divisions), k (# of eigenpairs to save) from command line. If command arguments are not present or invalid it uses defaults.
+    Then it calls the subroutines that do the actual task. It is divided into two parts: 
+    * reading command line arguments to set parameters and debug flag;
+    * eigenpairs computation.
+
+- Eigenvalues.dat & Eigenfunctions.dat :
+    these files contains the eigenvalues and eigenfunctions computed by the program, respectively.
+    
+- Ex6-Guadagnini-EigValsDifference.gnu & Ex6-Guadagnini-EigFunctions.gnu :
+    these files are the gnuplot scripts used to produce the plots: EigenvaluesError.pdf & Eigenfunctions.pdf .
+    
+- test.txt & testMat.txt :
+    these files are eventually created by the program only if debug is active (just for debugging purpose):
+    * test.txt    : it contains the discretized space points and the potential
+    * testMat.txt : it contains the hamiltonian matrix after its initialization (it is created only if Ndiv <= 10)
+
+   
+# Compile instructions: #
+To compile use :
+    gfortran *CODE.f90 -o ContTimeIndSE.x -lblas - llapack [-g -fcheck=all -Wall -Wconversion-extra -O3]
+    
+    
+# Execute instructions: #
+- FORTRAN:
+    To run use :
+        ./ContTimeIndSE.x [w] [width] [# of divisions] [# of eigenpairs to save] [debug flag]
+    where "debug flag" must be "TRUE" in order to activate debug.
+    Example: 
+        ./ContTimeIndSE.x 1 10 1001 20 TRUE
+        
+    With wrong or no arguments the program uses default values; in that case the call is equivalent to:
+        ./ContTimeIndSE.x 1 10 101 4 [debug flag]
+    
+- GNUPLOT:
+    To run the gnuplot scripts:
+        gnuplot -c Ex6-Guadagnini-EigValsDifference.gnu
+        gnuplot -c Ex6-Guadagnini-EigFunctions.gnu
