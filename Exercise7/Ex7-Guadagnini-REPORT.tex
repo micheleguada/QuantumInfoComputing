@@ -1,0 +1,214 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=3.0cm, right=3.0cm, top=3.0cm, bottom=3.0cm]{geometry}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% include code listings
+\usepackage{listings}
+
+% Defining colors for syntax highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+\lstset{style=mystyle}
+\captionsetup[lstlisting]{font={scriptsize}}
+
+% header and footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Michele Guadagnini}
+\rhead{\today}
+\lfoot{Ex 7 - Quantum Information and Computing 2020/2021}
+\rfoot{Page \thepage}
+
+\author{Michele Guadagnini - ID 1230663}
+\title{\textbf{Exercise 7 \\ Time Dependent Schr\"odinger Equation}}
+\date{\today}
+
+%File names must include your name, exercise number and codewords REPORT, and CODE.
+%Example: Ex2-Rossi-REPORT.pdf
+%The maximum length of the report is five pages
+\begin{document}
+\maketitle
+
+\vspace{20pt}
+\begin{abstract}
+	The aim of this exercise is to solve the Schr\"odinger equation for the time dependent \textit{harmonic oscillator} potential in one dimension and to 
+	compute the time evolution of the ground state. The computational method chosen is the \textit{Split Operator Method}.
+\end{abstract}
+
+\section{Theory} %Explain briefly the theory you have based your solution on.
+\label{sec:Th}
+
+The hamiltonian of the Schr\"odinger equation of the harmonic oscillator to be considered can be written as:
+\begin{equation}
+H = \frac{P^2}{2} + \frac{(Q - Q_0(t)^2)}{2} \quad , \quad where: \quad Q_0(t) = \frac{t}{T}
+\label{eq:Ham}
+\end{equation}
+with $T$ the total time of the evolution.
+
+In order to compute the time evolution of the ground state, firstly the ground state wavefunction for $t=0$ is needed. 
+This can be done by discretizing the space, the second derivative and the potential and then diagonalize the resulting hamiltonian matrix, as done in the Week 6 assignment.
+
+Analitically, the time evolution consists in applying the \textit{time evolution operator} to the wavefunction as:
+\begin{equation}
+|\Psi(t)> = e^{-i\hat H(t) dt} |\Psi(0)>
+\label{eq:TimeEv}
+\end{equation}
+Computationally, it can be done by using the \textit{Split Operator Method}. 
+It consists in separating the kinetic and potential terms of the hamiltonian by accepting an error of the order of $dt^2$ due to the fact that the two operators do not commute. 
+To reduce this error it is possible to apply the \textit{Strang Splitting}, that consists in separate the potential operator step in two steps of $\frac{dt}{2}$ and allows to reduce the error to the order of $dt^3$.
+
+Once the kinetic term is separated from the potential one, to speed up computation the \textit{Fast Fourier Transform} (\textit{FFT}) algorithm can be used. It allows to apply the kinetic operator as a diagonal matrix to the transformed wavefunction and then transform it back to space representation. With this trick the overall complexity is reduced from O($N^2$) to O($Nlog(N)$).
+
+Summing up, the complete procedure is represented by the following formulas:
+\begin{equation}
+e^{-i\hat H(t) dt} \approx e^{-i\hat V\frac{dt}{2}} e^{-i\hat Tdt} e^{-i\hat V\frac{dt}{2}}
+\label{eq:Strang}
+\end{equation}
+\begin{equation}
+|\Psi(t+dt)> = e^{-i\hat V\frac{dt}{2}} \mathcal{F}^{-1}\mathcal{F} e^{-i\hat Tdt} \mathcal{F}^{-1}\mathcal{F} e^{-i\hat V\frac{dt}{2}} |\Psi(t)>
+\label{eq:Fourier}
+\end{equation}
+
+The wavefunction is expected simply to shift towards the new minimum of the potential at each time step. This minimum moves with constant speed from $x=0$ to $x=1$.
+
+\section{Code Development} %Introduce strategies, tests, and report debugging problems, compilations options
+
+\subsection{Design and Implementation}
+The implementation started by building up the module \textit{TimeDependentSE} that contains all the subroutines used in this assignment. The most important ones are:
+\begin{itemize}
+	\item \textit{InitParamsFromFile}: it reads the four parameters of the problem ($LL$, $TT$, $NdivX$, $NdivT$) from the configuration file and stores them in the dedicated derived type variable \textit{Pars}. If something goes wrong while reading, it sets the parameters to default by calling the subroutine \textit{InitDefaults}. It also allows to set the parameters in arbitrary order.
+	\item \textit{MomentumSpace}: it computes the momentum discrete space in the particular way needed to match the output of the \textit{FFT} (see Listing \ref{ls:CFFT}).
+	\item \textit{ComplexFFT}: it uses \textit{FFTW3} library to compute the forward or backward Fourier Transform of a complex array. It is built to modify in place the passed array. This part of the code is contained in Listing \ref{ls:CFFT}.
+	\item \textit{PrintTimeEvol}: it prints in a file the discrete space and the wavefunction for a particular time step. The files for all the time steps for a single value of the total time $T$ are stored in a dedicated folder.
+\end{itemize}
+
+\lstinputlisting[language=FORTRAN, firstnumber=190, linerange={190-220}, caption=MomentumSpace and ComplexFFT subroutines. , label=ls:CFFT]{Ex7-Guadagnini-TimeDependentSE-CODE.f90}
+
+The subroutines regarding the ground state computation at $t=0$ have been already described in the previous assignment and not mentioned here.
+
+The main program is contained in the file \textit{Ex7-Guadagnini-CODE.f90} and it is divided in three main parts:
+\begin{itemize}
+	\item The first part reads the parameters values from the file \textit{Config\_Pars.txt}, initializes the variables and allocates the memory needed for the next part.
+	\item The second one computes the ground state at $t=0$ of the system and stores it. It also does some tests if debug is active.
+	\item The last one computes the time evolution of the ground state as described in Section \ref{sec:Th}. It is mainly constituted by a \textit{DO} loop over the time steps, in which the appropriate subroutines are called. This part is reported in Listing \ref{ls:TimeEvol}. 
+\end{itemize}
+
+\lstinputlisting[language=FORTRAN, firstnumber=138, linerange={138-178}, caption=Time evolution computation code. , label=ls:TimeEvol]{Ex7-Guadagnini-CODE.f90}
+
+\subsection{Debug and Test}
+The \textit{FFTW3} library has been installed with the command:
+\begin{lstlisting}[language=BASH,numbers=none]
+sudo apt install libfftw3-dev libfttw3-3
+\end{lstlisting}
+Then the program has been compiled and executed with:
+\begin{lstlisting}[language=BASH,]
+gfortran *CODE.f90 -o TimeDepSE.x -lblas -llapack -lfftw3 -lm -g -fcheck=all -Wall -Wconversion-extra
+./TimeDepSE.x
+\end{lstlisting}
+
+To debug the program some additional subroutines has been used together with the usual \textit{Debugging} module.
+Also some printings has been implemented in the main program, that allows to test the correctness of intermediate results, such as the potential computation, the eigenpairs resulting from the diagonalization, the output of the Fourier Transform, etc.
+
+During the testing of the complete program, it happened that the wavefunction for different time steps was not moving towards the new minimum, remaining completely unchanged. The problem was that the subroutine \textit{dfftw\_plan\_dft\_1d} from \textit{FFTW3} was called by passing as fifth argument the string \textit{FFTW\_FORWARD} or \textit{FFTW\_BACKWARD} instead of integer numbers $-1$ and $+1$. The subroutine was working fine anyway at the first time step, but in the following steps probably some memory issues happened. Indeed, the output in the test file \textit{FFTtest.txt} was correct also with the string arguments, making this error difficult to figure out.
+
+%% examples of code listing
+%\begin{lstlisting}[language=FORTRAN]
+%	code
+%\end{lstlisting}
+
+%\lstinputlisting[language=FORTRAN, firstline=2, lastline=12]{CODE.f90}
+
+\section{Results} %Present data and explain your results.
+
+The values of the parameter $TT$ that has been tested are: $1$, $5$, $10$, $50$, $100$, $500$.
+The other parameters have been kept fixed to the following values: $NdivX = NdivT = 1024$ and $LL = 15$.
+
+The results have been plotted with \textit{GNUPLOT} and they are reported in Figure \ref{fig:TimeEvol}.
+It is possible to notice that for small values of the parameter $TT$, in particular for $TT=5$ and lower (Figure \ref{fig:TE1} and \ref{fig:TE5}), the maximum of the wavefunction can overcome or not reach at all the $x=1$ position. Also, in the same plots it seems that the wavefunction is not moving with constant speed. This could be due to the time step that starts to be too small.
+
+For values of $TT$ bigger than $100$ the maximum value of the wavefunction starts to oscillate, meaning that the time step starts to be too big to have good precision in computation of \textit{FFT} (Figure \ref{fig:TE500}).
+ 
+% figure and subfigures
+\begin{figure}[t]
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[width=1\linewidth]{TimeEvol1.00/Plot_TimeEvol.pdf}
+		\caption{Time evolution with parameter $TT = 1$.}
+		\label{fig:TE1}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[width=1\linewidth]{TimeEvol5.00/Plot_TimeEvol.pdf}
+		\caption{Time evolution with parameter $TT = 5$.}
+		\label{fig:TE5}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[width=1\linewidth]{TimeEvol10.00/Plot_TimeEvol.pdf}
+		\caption{Time evolution with parameter $TT = 10$.}
+		\label{fig:TE10}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[width=1\linewidth]{TimeEvol50.00/Plot_TimeEvol.pdf}
+		\caption{Time evolution with parameter $TT = 50$.}
+		\label{fig:TE50}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[width=1\linewidth]{TimeEvol100.00/Plot_TimeEvol.pdf}
+		\caption{Time evolution with parameter $TT = 100$.}
+		\label{fig:TE100}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[width=1\linewidth]{TimeEvol500.00/Plot_TimeEvol.pdf}
+		\caption{Time evolution with parameter $TT = 500$.}
+		\label{fig:TE500}
+	\end{subfigure}
+	\caption{Time evolution for different values of the parameter $TT$. The plotted curves are taken every $100$ time steps.}
+	\label{fig:TimeEvol}
+\end{figure}
+
+\section{Self-evaluation} %What have you learned? What can be done next? What went wrong and why?
+
+Things learned while completing this assignment are:
+\begin{itemize}
+	\item to apply the Split Operator Method to solve a Time Dependent Schr\"odinger equation;
+	\item to use the Fast Fourier Transform on an array.
+\end{itemize}
+
+To improve the program it would be better to separate ground state computation from the time evolution. This would allow to increase the flexibility of the code.
+It would have been interesting to calculate the peak position for each time step and see how it moves. It seems not to move with constant speed but with oscillating speed.
+Another possible improvement could be to allow comments in configuration file.
+	
+\end{document}

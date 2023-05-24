@@ -1,0 +1,5 @@
+LL    = 15.
+NdivX = 1024
+NdivT = 1024
+TT    = 10.
+Debug = .FALSE.

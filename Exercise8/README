@@ -1,0 +1,75 @@
+### Exercise 8 - Quantum Information and Computing 2020/2021 ###
+
+## Density Matrices ##
+The aim of this program is to compute the density matrix starting from a pure state wavefunction either of separable or entangled type.
+
+
+# Files description: #
+- Ex8-Guadagnini-DensityMatrices-CODE.f90 : 
+    contains the module that defines the subroutines to read the configuration file, allocate memory for state, compute density matrix and print results on file.
+    In details:
+        *  Derived Types        : it defines the two derived types "parameters" and "purestate".
+        *  InitParamsFromFile   : it reads from a configuration file the parameters and stores them all together in a variable of type "parameters".
+        *  AllocPurePsi         : allocates the memory for the state. If separable, the size is DxN, otherwise it is D^N.
+        *  RandomPsi            : it initializes the state with random complex numbers.
+        *  PureDensityMat       : it computes the density matrix from psi. 
+        *  RedDensityMat        : it computes the left or right reduced density matrix. Note that it assumes N=2.     
+        *  L2Norm               : it computes the L2 norm of a wavefunction.
+        *  CTrace               : it computes the complex trace of a matrix.
+        *  WriteOnFile          : it writes in file the trace and the matrix itself.
+    
+- Ex8-Guadagnini-Debugger-CODE.f90 :
+    contains the module "Debugger" that defines two subroutines to be used in the program.
+    *  InitDebugger: it prints a message stating that debugging is active and explaining its usage;
+    *  Checkpoint  : it prints a message when called only if the logical flag "Debug" is .TRUE.;
+    *  CatchError  : called when something goes wrong, it prints a message on screen. If it is a fatal error it prints the message also on a file and stops the execution.
+    
+- Ex8-Guadagnini-Test-CODE.f90 : 
+    contains the main program that reads the parameters from the configuration file "Config_Pars.txt".
+    Then it calls the subroutines that tests all the subroutines of the module described above. It is divided into two parts: 
+    * reading configuration to set the parameters and the debug flag;
+    * testing; since some subroutines are defined only for N=2 the execution is stopped if N > 2. The value of D has no restrictions in the code.
+    
+- Ex8-Guadagnini-2SpinHalf-CODE.f90 : 
+    contains the main program that reads the parameters from the configuration file "Config_2SpinHalf.txt".
+    Then it calls the subroutines that tests all the subroutines of the module described above on a system composed of two particle of spin 1/2. 
+    It is divided into two parts: 
+    * reading configuration to set the parameters (N and D must be = 2) and the debug flag;
+    * testing
+    
+- Config_Pars.txt :
+    contains the input parameters values:
+    * Hdim  : dimension of Hilbert space
+    * Nsys  : # of subsystems
+    * Sep   : logical flag for separability
+    * Debug : debug logical flag
+    
+- Config_2SpinHalf.txt :
+    contains the input parameters values:
+    * Hdim  : dimension of Hilbert space (must be 2 !)
+    * Nsys  : # of subsystems            (must be 2 !)
+    * Sep   : logical flag for separability
+    * Debug : debug logical flag
+
+- DensityMat.txt  &  RedMat_Left.txt  &  RedMat_Right.txt :
+    output files of the program compiled from Ex8-Guadagnini-Test-CODE.f90.
+    
+- DensityMat_2SpinHalf.txt  &  RedMat_Left_2SpinHalf.txt  &  RedMat_Right_2SpinHalf.txt :
+    output files of the program compiled from Ex8-Guadagnini-2SpinHalf-CODE.f90.
+    
+    
+# Compile instructions: #
+To compile the test program use :
+    gfortran Ex8-Guadagnini-Test-CODE.f90 Ex8-Guadagnini-Debugger-CODE.f90 Ex8-Guadagnini-DensityMatrices-CODE.f90 -o DensityMat.x 
+    
+To compile the 2SpinHalf program use :
+    gfortran Ex8-Guadagnini-2SpinHalf-CODE.f90 Ex8-Guadagnini-Debugger-CODE.f90 Ex8-Guadagnini-DensityMatrices-CODE.f90 -o DensityMat_2SH.x 
+    
+    
+# Execute instructions: #
+- FORTRAN:
+    To run use :
+        ./DensityMat.x
+        ./DensityMat_2SH.x
+    
+    To change the program parameters modify the file: Config_Pars.txt or Config_2SpinHalf.txt . The order of the parameters is arbitrary.

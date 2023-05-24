@@ -1,0 +1,224 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=3.0cm, right=3.0cm, top=3.0cm, bottom=3.0cm]{geometry}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{braket}
+
+% include code listings
+\usepackage{listings}
+
+% Defining colors for syntax highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+\lstset{style=mystyle}
+\captionsetup[lstlisting]{font={scriptsize}}
+
+% header and footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Michele Guadagnini}
+\rhead{\today}
+\lfoot{Ex 8 - Quantum Information and Computing 2020/2021}
+\rfoot{Page \thepage}
+
+\author{Michele Guadagnini - ID 1230663}
+\title{\textbf{Exercise 8 \\ Density Matrices}}
+\date{\today}
+
+%File names must include your name, exercise number and codewords REPORT, and CODE.
+%Example: Ex2-Rossi-REPORT.pdf
+%The maximum length of the report is five pages
+\begin{document}
+\maketitle
+
+\vspace{20pt}
+\begin{abstract}
+		The aim of this exercise is to create a program to compute the Density Matrix starting from the state of the system represented by a vector of coefficients both in the separable and entangled case. The program is then tested on a 2-Spin $\frac{1}{2}$ system.
+\end{abstract}
+
+\section{Theory} %Explain briefly the theory you have based your solution on.
+
+%(definition of quantum superposition)
+
+%General N-body pure wave function:
+Given a Hilbert space of dimension $D$, $\mathcal{H}^D$, a general wave function $\Psi$ of $N$-body quantum system can be described as:
+\begin{equation}
+ \ket{\Psi} = \sum_{\alpha_1,...,\alpha_N} C_{\alpha_1,...,\alpha_N} \ket{\alpha_1} \otimes \ket{\alpha_N}
+ \label{eq:GenPsi1}
+\end{equation}
+The wave function above can be rewritten as:
+\begin{equation}
+ \ket{\Psi} = \sum_{i}^{D^N} C_i \ket{i}, \quad where: \quad \ket{i} \in \mathcal{H}^{D^N}
+ \label{eq:GenPsi2}
+\end{equation}
+
+The vector of coefficients $C_i$ contains $D^N$ elements that, in general, are of complex type.
+%Separable pure states: 
+In the particular case that the total wave function can be separated into $N$ definite pure states, it becomes:
+\begin{equation}
+ \ket{\Psi} = \sum C_{i, \alpha_i} \ket{\alpha_i} = \sum_{i}^{N} C_i \ket{i}
+ \label{eq:SepPsi}
+\end{equation}
+This time the total wave function only requires $D\times N$ coefficients to be stored.
+
+%Density matrix:
+To characterize the statistical state of a quantum system it is convenient to use the \textit{density matrix}. For a general pure state $\Psi$, it is defined as:
+\begin{equation}
+ \rho = \ket{\Psi} \bra{\Psi}
+ \label{eq:GenRho}
+\end{equation}
+A general density matrix have the following properties:
+\begin{itemize}
+	\item it is \textit{hermitian};
+	\item the normalization of $\Psi$ implies that $Tr(\rho) = 1$;
+	\item it is a positive semi-definite matrix.
+\end{itemize}
+Also, for a pure state, we have that $\rho^2 = \rho$.
+
+%Reduced density matrix / partial trace:
+When dealing with \textit{composite} systems it is possible, starting from the general density matrix, to retrieve the state of the subsystem by computing the \textit{reduced density matrix}. 
+Supposing to have $2$ systems, $A$ and $B$, the reduced density matrix of system $A$ can be derived from the general $\rho_{AB}$ by tracing over the basis of the system $B$:
+\begin{equation}
+ \rho_{A_{\alpha,\alpha'}} = \sum_{\beta} \bra{\beta} \bra{\alpha} \rho_{AB} \ket{\alpha'} \ket{\beta} = Tr_B(\rho_{AB})
+ \label{eq:RedRho}
+\end{equation}
+The reduced density matrix has the same properties of the general density matrix described above.
+
+\section{Code Development} %Introduce strategies, tests, and report debugging problems, compilations options
+
+\subsection{Design and Implementation}
+The implementation started by building up the module \textit{DensityMatrices}, that contains all the subroutines used in this assignment. In particular:
+\begin{itemize}
+	\item \textit{InitParamsFromFile} : it reads the parameters from the configuration file: $Hdim$, the dimension of the Hilbert space, $Nsys$, the number of subsystems, $Sep$, a logical flag for separability of the pure state, and the logical flag to active $Debug$.
+	\item \textit{AllocPurePsi} : it allocates the memory needed to store the wavefunction. It reserve a space of $D\times N$ elements if the state is separable, otherwise it reserves $D^N$ memory places.
+	\item \textit{PureDensityMat} : it computes the \textit{Density Matrix} from the $\Psi$ vector, directly if it is not separable or taking care to calculate the proper indexes if it is separable. The code is reported in Listing \ref{ls:PureDenMat}.
+	\item \textit{RedDensityMat} : it computes the left or right reduced density matrix according to a flag passed to the subroutine. This part of the code is reported in Listing \ref{ls:RedDenMat}. Note that it assumes that $N$, the number of subsystems is $2$.
+	\item finally, it contains other subroutines to random initialize a state, compute \textit{Norm} and \textit{Trace} and to store a density matrix on file.
+\end{itemize}
+
+\lstinputlisting[language=FORTRAN, firstnumber=122, linerange={122-138}, caption=Density Matrix computation., label=ls:PureDenMat]{Ex8-Guadagnini-DensityMatrices-CODE.f90}
+
+\lstinputlisting[language=FORTRAN, firstnumber=164, linerange={164-188}, caption=Reduced Density Matrix computation., label=ls:RedDenMat]{Ex8-Guadagnini-DensityMatrices-CODE.f90}
+
+To complete this exercise, two main program has been created. The first one, \textit{Ex8-Guadagnini-Test-CODE.f90}, is used to test all the subroutines and functions of the module described above. 
+By editing its configuration file, \textit{Config\_Pars.txt}, it is possible to set any value for $Hdim$ and $Nsys$. 
+Since some of the subroutines only work for $N=2$ a part of the program (the one that computes the reduced densities) is skipped if $N>2$, while for the value of $D$ in principle any value is possible.
+
+The second program, \textit{Ex8-Guadagnini-2SpinHalf-CODE.f90}, performs the same computation but in a system composed by two particles of spin $1/2$. The state of the system is not set randomly as in the previous case. This time one over two possible states is chosen according to the separability flag.
+
+\subsection{Debug and Test}
+The compilation and execution commands are quite straightforward since no particular external libraries has been used.
+The first test done has been verifying the maximum values of the input parameters before crashing due to memory errors. It happened that, with $Hdim = 10$, $Nsys = 4$ and $Sep = F$ the program still works, but it consumes almost all the available memory (of the particular machine used). 
+Increasing one of the two parameters leads to the OS preventing the allocation of the memory. In fact, for the non separable case the number of memory places needed to store the density matrix is exponential, precisely $D^N$.
+ 
+Other tests and checks has been done during implementation, such as verifying the normalization of the wavefunction, the trace of the density matrix that must be $1$, etc.
+
+\section{Results} %Present data and explain your results.
+
+The results of the test program are reported in the file \textit{DensityMat.txt}. The parameters used in this case are: $Hdim = 3$, $Nsys = 2$, $Sep  = FALSE$. The wavefunction has been initialized with random numbers whose \textit{real} and \textit{imaginary} parts are uniformly distributed between $0$ and $1$.
+It can be seen that the trace of this matrix is $1$ and that it is hermitian, as expected.
+The same considerations can be done also on the left and right reduced density matrices, stored respectively in the files \textit{RedMat\_Left.txt} and \textit{RedMat\_Right.txt}.
+
+The program regarding \textit{2-Spin $\frac{1}{2}$} has been run twice changing the value of the separability flags in its configuration file, \textit{Config\_2SpinHalf.txt}. The two states that are coded in the program are:
+\begin{equation}
+\ket{\Psi_{sep}} = \ket{0_A} \otimes \frac{1}{\sqrt{2}} (\ket{0_B} + \ket{1_B})
+\label{eq:sepstate}
+\end{equation}
+\begin{equation}
+\ket{\Psi_{ent}} = \frac{1}{\sqrt{2}} (\ket{01} - \ket{10})
+\label{eq:entstate}
+\end{equation}
+Equation \ref{eq:sepstate} shows a separable state, while Equation \ref{eq:entstate} shows an entangled one.
+
+The density matrix obtained in the separable case is showed in Equation \ref{eq:DMatSep},
+\begin{equation}
+\rho_{AB} =
+\begin{pmatrix}
+	\frac{1}{2} & \frac{1}{2} & 0 & 0\\
+	\frac{1}{2} & \frac{1}{2} & 0 & 0\\
+	0 & 0 & 0 & 0\\
+	0 & 0 & 0 & 0\\
+\end{pmatrix}
+\label{eq:DMatSep}
+\end{equation}
+while the reduced ones are reported in Equation \ref{eq:RedMatSep}.
+\begin{equation}
+\rho_{A} =
+\begin{pmatrix}
+	1 & 0\\
+	0 & 0\\
+\end{pmatrix}
+\quad
+\rho_{B} = 
+\begin{pmatrix}
+	\frac{1}{2} & \frac{1}{2}\\
+	\frac{1}{2} & \frac{1}{2}\\
+\end{pmatrix}
+\label{eq:RedMatSep}
+\end{equation}
+Also this time the properties defined above for the density matrix hold.
+
+In the same way also the results for the entangled case are reported in the following equations.
+\begin{equation}
+\rho_{AB} =
+\begin{pmatrix}
+	0 & 0 & 0 & 0\\
+	0 &  \frac{1}{2} & -\frac{1}{2} & 0\\
+	0 & -\frac{1}{2} &  \frac{1}{2} & 0\\
+	0 & 0 & 0 & 0\\
+\end{pmatrix}
+\label{eq:DMatEnt}
+\end{equation}
+\begin{equation}
+\rho_{A} = \rho_{B} = 
+\begin{pmatrix}
+	\frac{1}{2} & 0\\
+	0 & \frac{1}{2}\\
+\end{pmatrix}
+\label{eq:RedMatEnt}
+\end{equation}
+
+
+\section{Self-evaluation} %What have you learned? What can be done next? What went wrong and why?
+
+This assignment required to learn how to compute the general and reduced density matrices from a vector of coefficients representing the state of the system.
+
+The program only works for low number of subsystems and low dimension of the Hilbert space. The problem is mainly the memory needed to store the density matrix. 
+One small improvement that can be done is, since the density matrix is hermitian, to store only the upper triangular part of it, since the lower triangular is the complex conjugate of the upper one.
+
+Also, the advantage of storing only $D\times N$ coefficients for the wavefunction in the separable case vanishes since the program, as it is implemented in this moment, computes and stores anyway the full density matrix.
+A better idea would be to not store the density matrix, but only compute the elements when they are needed.
+
+Another limit of the program is that the computation of the partial trace is possible only for systems with $2$ particles, but generalizing to arbitrary $N$ is not trivial.
+	
+\end{document}

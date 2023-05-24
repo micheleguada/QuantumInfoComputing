@@ -1,0 +1,87 @@
+### Exercise 7 - Quantum Information and Computing 2020/2021 ###
+
+## Time Dependent Schroedinger equation ##
+The aim of this program is to solve the time evolution of the ground state by solving the time dependent schroedinger equation with hamiltonian: 
+    H = 1/2( p^2 + ( q - q_0(t) )^2 ).
+The ground state is computed by diagonalizing the hamiltonian matrix for t=0, then the time evolution is computed using the Split Operator Method.
+
+
+# Files description: #
+- Ex7-Guadagnini-TimeDependentSE-CODE.f90 : 
+    contains the module that defines the subroutines to read the configuration file, compute ground state, discretizations and time evolution and to save results on file.
+    It is divided in four parts:
+      - INPUT & INITIALIZATION subroutines:
+        *  InitDefaults         : it sets default values for the input parameters in case that invalid parameters were passed to the program
+        *  InitParamsFromFile   : it reads from a configuration file the parameters and stores them all together in a derived type variable "Parameters"
+        *  Discretize           : it computes the discretized base and time space vector
+        
+      - subroutines to COMPUTE GROUND STATE:
+        *  HarmonicOscillatorPot: it computes the discrete harmonic potential from the base space vector and optionally from the current time step
+        *  InitHamiltonian      : it initializes the matrix as a tridiagonal matrix (actually only the upper triangular part is set)
+        *  SymmetricEigenpairs  : it computes eigenvalues and eigenfunctions using the DSYEV subroutine from LAPACK
+        
+      - subroutines/functions for TIME EVOLUTION:
+        *  MomentumSpace        : it computes the momentum operator
+        *  ComplexFFT           : it computes forward or backword Fast Fourier Transform
+        *  L2Norm               : it computes the L2 norm of a wavefunction
+      
+      - ADDITIONAL printing subroutines:
+        *  PrintTimeEvol        : it prints the time evoluted wavefunction in a different file for each time step, different folder for each TT value
+        *  PrintPotEvol         : it prints the potential for one time step (used for debugging)
+        *  PrintEigVecs         : it prints the discrete eigenfunctions as columns in a file together with the base space vector
+        *  PrintEigVals         : it prints the eigenvalues in column
+    
+- Ex7-Guadagnini-Debugger-CODE.f90 :
+    contains the module "Debugger" that defines two subroutines to be used in the program.
+    *  InitDebugger: it prints a message stating that debugging is active and explaining its usage;
+    *  Checkpoint  : it prints a message when called only if the logical flag "Debug" is .TRUE.;
+    *  CatchError  : called when something goes wrong, it prints a message on screen. If it is a fatal error it prints the message also on a file and stops the execution.
+    
+- Ex7-Guadagnini-CODE.f90 : 
+    contains the main program that reads the parameters from the configuration file. If reading goes wrong it uses defaults.
+    Then it calls the subroutines that do the actual task. It is divided into three parts: 
+    * reading configuration to set the parameters and the debug flag;
+    * ground state computation;
+    * time evolution computation.
+    
+- Config_Pars.txt :
+    contains the input parameters values:
+    * LL    : dimension of the system
+    * TT    : max time of evolution
+    * NdivX : # of divisions to discretize the space
+    * NdivT : # of divisions to discretize the time
+    * Debug : debug logical flag
+
+- Eigenvalues.dat & Eigenfunctions.dat :
+    these files contains the eigenvalues and eigenfunctions computed by the program, respectively. Printed only when debug is active
+    
+- Ex7-Guadagnini-TimeEvol.gnu :
+    script to produce the time evolution plots
+    
+- test.txt & FFTtest.txt :
+    these files are eventually created by the program only if debug is active (just for debugging purpose):
+    * test.txt    : it contains the discretized space points and the potential for t=0
+    * FFTtest.txt : it contains the space vector, the ground state wavefunction, the  wavefunction after FFT, FFT^(-1) and normalization calculations
+    
+    
+# Compile instructions: #
+To compile use :
+    gfortran *CODE.f90 -o TimeDepSE.x -lblas -llapack -lm -lfftw3 [-g -fcheck=all -Wall -Wconversion-extra]
+    
+    
+# Execute instructions: #
+- FORTRAN:
+    To run use :
+        ./TimeDepSE.x
+    
+    To change the program parameters modify the file: Config_Pars.txt. The order of the parameters is arbitrary.
+    With wrong values the program uses default values hard-coded in the subroutine "InitDefaults".
+    
+- GNUPLOT:
+    To run the gnuplot scripts, go in the write folder and run:
+        gnuplot -c ../Ex7-Guadagnini-TimeEvol.gnu [maxT],
+        where maxT = TT parameter set in the program (it can be deduced by the name of the folder)
+        
+    Example:
+        cd TimeEvol10.00
+        gnuplot -c ../Ex7-Guadagnini-TimeEvol.gnu 10

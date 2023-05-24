@@ -1,0 +1,4 @@
+Hdim  = 3
+Nsys  = 2
+Sep   = F
+Debug = F

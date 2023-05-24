@@ -1,0 +1,4 @@
+NN    = 3
+kk    = 8
+Lambda= 1.0
+Debug = F
