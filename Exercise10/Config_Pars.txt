@@ -1,0 +1,7 @@
+NN    = 8
+TruncN= 4
+Lambda= 3.0
+ExitTh= 5d-16
+MaxItr= 100
+kk    = 1
+Debug = F
